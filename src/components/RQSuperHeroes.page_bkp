@@ -1,0 +1,48 @@
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import axios, { AxiosError, AxiosResponse } from "axios";
+
+interface Hero {
+  id: number;
+  name: string;
+  alterEgo: string;
+}
+
+const fetchSuperHeroes = () => {
+  return axios.get("http://localhost:4000/superheroes");
+};
+
+const config: UseQueryOptions<AxiosResponse<Hero[]>> = {
+  // staleTime: 30000,
+  // cacheTime: 30000,
+  // refetchOnMount: false,
+  // refetchOnWindowFocus: false,
+  refetchInterval: false,
+};
+
+const RQSuperHeroes = () => {
+  const { isLoading, data, isFetching, isError, error } = useQuery<
+    AxiosResponse<Hero[]>,
+    AxiosError
+  >(["super-heroes"], fetchSuperHeroes, config);
+
+  console.log({ isLoading, isFetching });
+
+  if (isLoading) {
+    return <h2>Loading...</h2>;
+  }
+
+  if (isError) {
+    return <h2>{error?.message}</h2>;
+  }
+
+  return (
+    <>
+      <h2>RQSuperHeroes Page</h2>
+      {data?.data.map((hero: Hero) => {
+        return <div key={hero.id}>{hero?.name}</div>;
+      })}
+    </>
+  );
+};
+
+export default RQSuperHeroes;

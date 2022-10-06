@@ -1,0 +1,66 @@
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { useState } from "react";
+
+interface Hero {
+  id: number;
+  name: string;
+  alterEgo: string;
+}
+
+const fetchSuperHeroes = () => {
+  return axios.get("http://localhost:4000/superheroes");
+};
+
+const RQSuperHeroes = () => {
+  const [refetchInterval, setRefetchInterval] = useState<number | false>(3000);
+  const onSuccess = (data) => {
+    if (data.data.length > 3) {
+      setRefetchInterval(false);
+    }
+  };
+  const onError = (err) => {
+    setRefetchInterval(false);
+  };
+  const config: UseQueryOptions<AxiosResponse<Hero[]>> = {
+    // staleTime: 30000,
+    // cacheTime: 30000,
+    // refetchOnMount: false,
+    // refetchOnWindowFocus: false,
+    refetchInterval,
+    onSuccess,
+    onError,
+    // enabled: false,
+  };
+
+  const { isLoading, fetchStatus, data, refetch, isFetching, isError, error } =
+    useQuery<AxiosResponse<Hero[]>, AxiosError>(
+      ["super-heroes"],
+      fetchSuperHeroes,
+      config
+    );
+
+  const handleButtonClick = () => {
+    refetch();
+  };
+
+  if ((fetchStatus !== "idle" && isLoading) || isFetching) {
+    return <h2>Loading...</h2>;
+  }
+
+  if (isError) {
+    return <h2>{error?.message}</h2>;
+  }
+
+  return (
+    <>
+      <h2>RQSuperHeroes Page</h2>
+      <button onClick={handleButtonClick}>Fetch Heroes</button>
+      {data?.data.map((hero: Hero) => {
+        return <div key={hero.id}>{hero?.name}</div>;
+      })}
+    </>
+  );
+};
+
+export default RQSuperHeroes;
